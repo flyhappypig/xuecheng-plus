@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/xuecheng-plus-content/xuecheng-plus-content-api/xuecheng-plus-content-api.iml" filepath="$PROJECT_DIR$/xuecheng-plus-content/xuecheng-plus-content-api/xuecheng-plus-content-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/xuecheng-plus-content/xuecheng-plus-content-model/xuecheng-plus-content-model.iml" filepath="$PROJECT_DIR$/xuecheng-plus-content/xuecheng-plus-content-model/xuecheng-plus-content-model.iml" />
       <module fileurl="file://$PROJECT_DIR$/xuecheng-plus-content/xuecheng-plus-content-service/xuecheng-plus-content-service.iml" filepath="$PROJECT_DIR$/xuecheng-plus-content/xuecheng-plus-content-service/xuecheng-plus-content-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/xuecheng-plus-generator/xuecheng-plus-generator.iml" filepath="$PROJECT_DIR$/xuecheng-plus-generator/xuecheng-plus-generator.iml" />
       <module fileurl="file://$PROJECT_DIR$/xuecheng-plus-parent/xuecheng-plus-parent.iml" filepath="$PROJECT_DIR$/xuecheng-plus-parent/xuecheng-plus-parent.iml" />
     </modules>
   </component>
