@@ -7,3 +7,7 @@ Content-Type: application/json
   "courseName": "java",
   "publishStatus": ""
 }
+###
+GET {{system_host}}/system/dictionary/all
+Content-Type: application/json
+
