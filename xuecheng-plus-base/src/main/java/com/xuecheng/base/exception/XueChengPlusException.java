@@ -1,9 +1,12 @@
 package com.xuecheng.base.exception;
 
+import lombok.Data;
+
 /**
  * @author gushouye
  * @description 自定义异常类
  **/
+@Data
 public class XueChengPlusException extends RuntimeException {
 
     private String errMessage;
