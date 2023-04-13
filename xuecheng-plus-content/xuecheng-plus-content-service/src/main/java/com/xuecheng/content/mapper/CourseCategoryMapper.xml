@@ -4,18 +4,33 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.xuecheng.content.model.po.CourseCategory">
-        <id column="id" property="id" />
-        <result column="name" property="name" />
-        <result column="label" property="label" />
-        <result column="parentid" property="parentid" />
-        <result column="is_show" property="isShow" />
-        <result column="orderby" property="orderby" />
-        <result column="is_leaf" property="isLeaf" />
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="label" property="label"/>
+        <result column="parentid" property="parentid"/>
+        <result column="is_show" property="isShow"/>
+        <result column="orderby" property="orderby"/>
+        <result column="is_leaf" property="isLeaf"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, name, label, parentid, is_show, orderby, is_leaf
+        id
+        , name, label, parentid, is_show, orderby, is_leaf
     </sql>
+    <select id="selectTreeNodes" resultType="com.xuecheng.content.model.dto.CourseCategoryTreeDto">
+        with RECURSIVE t1 as (
+            select t.*
+            from course_category t
+            where t.id = #{id}
+            union all
+            select c.*
+            from course_category c
+                     inner join t1 on t1.id = c.parentid
+        )
+        select *
+        from t1
+        order by t1.id, t1.orderby
+    </select>
 
 </mapper>
