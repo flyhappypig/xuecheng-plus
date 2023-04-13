@@ -66,35 +66,6 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
     @Override
     public CourseBaseInfoDto createCourseBase(Long companyId, AddCourseDto dto) {
 
-        // 参数合法性校验
-        if (StringUtils.isBlank(dto.getName())) {
-            XueChengPlusException.cast("课程名称为空");
-        }
-
-        if (StringUtils.isBlank(dto.getMt())) {
-            throw new RuntimeException("课程分类为空");
-        }
-
-        if (StringUtils.isBlank(dto.getSt())) {
-            throw new RuntimeException("课程分类为空");
-        }
-
-        if (StringUtils.isBlank(dto.getGrade())) {
-            throw new RuntimeException("课程等级为空");
-        }
-
-        if (StringUtils.isBlank(dto.getTeachmode())) {
-            throw new RuntimeException("教育模式为空");
-        }
-
-        if (StringUtils.isBlank(dto.getUsers())) {
-            throw new RuntimeException("适应人群为空");
-        }
-
-        if (StringUtils.isBlank(dto.getCharge())) {
-            throw new RuntimeException("收费规则为空");
-        }
-
         // 向课程基本信息表course_base写入数据
         CourseBase courseBaseNew = new CourseBase();
         // 将传入页面的参数放到courseBaseNew对象
@@ -126,12 +97,12 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
     private int saveCourseMarket(CourseMarket courseMarket) {
         // 参数合法性校验
         if (StringUtils.isEmpty(courseMarket.getCharge())) {
-            throw new RuntimeException("收费规则为空");
+            XueChengPlusException.cast("收费规则为空");
         }
         // 如果课程收费，价格为空
         if (courseMarket.getCharge().equals("201001")) {
             if (courseMarket.getPrice() == null || courseMarket.getPrice().floatValue() <= 0) {
-                throw new RuntimeException("课程的价格不能为空并且必须大于0");
+                XueChengPlusException.cast("课程的价格不能为空并且必须大于0");
             }
         }
         // 从数据查询营销信息，存在则更新，不存在则添加
