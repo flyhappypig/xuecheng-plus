@@ -68,10 +68,10 @@ public class MinioTest {
     // 查询文件 从minio中下载文件
     @Test
     public void test_getFile() throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        GetObjectArgs testbucket = GetObjectArgs.builder().bucket("testbucket").object("test/ry.sh").build();
+        GetObjectArgs getObjectArgs = GetObjectArgs.builder().bucket("testbucket").object("test/ry.sh").build();
 
         // 查询远程服务器获取到的一个流对象
-        InputStream inputStream = minioClient.getObject(testbucket);
+        FilterInputStream inputStream = minioClient.getObject(getObjectArgs);
         // 指定输出流
         FileOutputStream outputStream = new FileOutputStream(new File("D:\\data1\\ry.sh"));
         // 流拷贝方法
