@@ -82,6 +82,11 @@ public class Mp4VideoUtil extends VideoUtil {
     }
 
     public static void main(String[] args) throws IOException {
+
+//        ProcessBuilder builder = new ProcessBuilder();
+//        builder.command("C:\\Program Files (x86)\\Notepad++\\notepad++.exe");
+//        builder.redirectErrorStream(true);
+//        builder.start();
         //ffmpeg的路径
         String ffmpeg_path = "D:\\soft\\ffmpeg\\ffmpeg.exe";//ffmpeg的安装位置
         //源avi视频的路径
@@ -89,7 +94,7 @@ public class Mp4VideoUtil extends VideoUtil {
         //转换后mp4文件的名称
         String mp4_name = "nacos01.mp4";
         //转换后mp4文件的路径
-        String mp4_path = "D:\\develop\\bigfile_test\\";
+        String mp4_path = "D:\\develop\\bigfile_test\\a.mp4";
         //创建工具类对象
         Mp4VideoUtil videoUtil = new Mp4VideoUtil(ffmpeg_path,video_path,mp4_name,mp4_path);
         //开始视频转换，成功将返回success
