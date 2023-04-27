@@ -10,10 +10,12 @@ import com.xuecheng.base.model.PageResult;
 import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.config.MinioConfig;
 import com.xuecheng.media.mapper.MediaFilesMapper;
+import com.xuecheng.media.mapper.MediaProcessMapper;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
+import com.xuecheng.media.model.po.MediaProcess;
 import com.xuecheng.media.service.MediaFileService;
 import io.minio.*;
 import io.minio.errors.*;
@@ -63,6 +65,8 @@ public class MediaFileServiceImpl implements MediaFileService {
     // 存储视频
     @Value("${minio.bucket.videofiles}")
     private String bucket_video;
+    @Autowired
+    private MediaProcessMapper mediaProcessMapper;
 
     @Override
     public PageResult<MediaFiles> queryMediaFiels(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto) {
@@ -156,12 +160,41 @@ public class MediaFileServiceImpl implements MediaFileService {
                 XueChengPlusException.cast("保存文件信息失败");
             }
             log.debug("保存文件信息到数据库成功,{}", mediaFiles.toString());
-
         }
+        // 记录待处理任务
+        addWaitingTask(mediaFiles);
+        // 向mediaProcess插入记录
+
         return mediaFiles;
 
     }
 
+    /**
+     * 添加待处理任务
+     *
+     * @param mediaFiles 媒资文件信息
+     */
+    private void addWaitingTask(MediaFiles mediaFiles) {
+        // 判断先获取文件的mimeType
+        // 文件名
+        String filename = mediaFiles.getFilename();
+        // 文件扩展名
+        String extension = filename.substring(filename.lastIndexOf("."));
+        String mineType = getMineType(extension);
+        // 通过mineType判断如果是avi视频，才写入待处理任务
+        if (mineType.equals("video/x-msvideo")){
+            // 视频
+            MediaProcess mediaProcess = new MediaProcess();
+            BeanUtils.copyProperties(mediaFiles,mediaProcess);
+            // 状态为未处理
+            mediaProcess.setStatus("1");// 未处理
+            // 上传时间
+            mediaProcess.setCreateDate(LocalDateTime.now());
+            // 失败次数
+            mediaProcess.setFailCount(0);// 默认0
+            mediaFilesMapper.insert(mediaFiles);
+        }
+    }
 
     // 获取文件的md5
     private String getFileMd5(File file) {
@@ -411,7 +444,7 @@ public class MediaFileServiceImpl implements MediaFileService {
         RemoveObjectsArgs removeObjectsArgs = RemoveObjectsArgs.builder().bucket(bucket_video).objects(objects).build();
         Iterable<Result<DeleteError>> results = minioClient.removeObjects(removeObjectsArgs);
         // 要想真正的去删除，需要遍历
-        results.forEach(key ->{
+        results.forEach(key -> {
             try {
                 DeleteError deleteError = key.get();
             } catch (Exception e) {
