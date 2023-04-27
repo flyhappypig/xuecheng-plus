@@ -192,6 +192,7 @@ public class MediaFileServiceImpl implements MediaFileService {
             mediaProcess.setCreateDate(LocalDateTime.now());
             // 失败次数
             mediaProcess.setFailCount(0);// 默认0
+            mediaProcess.setUrl(null);
             mediaFilesMapper.insert(mediaFiles);
         }
     }
