@@ -69,6 +69,11 @@ public class MediaFileServiceImpl implements MediaFileService {
     private MediaProcessMapper mediaProcessMapper;
 
     @Override
+    public MediaFiles getFileById(String mediaId) {
+        return mediaFilesMapper.selectById(mediaId);
+    }
+
+    @Override
     public PageResult<MediaFiles> queryMediaFiels(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto) {
 
         //构建查询条件对象
