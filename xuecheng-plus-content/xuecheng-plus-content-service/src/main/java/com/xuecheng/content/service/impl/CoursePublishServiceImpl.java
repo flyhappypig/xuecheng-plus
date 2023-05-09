@@ -17,6 +17,7 @@ import com.xuecheng.content.service.TeachplanService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,6 +52,7 @@ public class CoursePublishServiceImpl implements CoursePublishService {
         return coursePreviewDto;
     }
 
+    @Transactional
     @Override
     public void commitAudit(Long companyId, Long courseId) {
         CourseBaseInfoDto courseBaseInfo = courseBaseInfoService.getCourseBaseInfo(courseId);
