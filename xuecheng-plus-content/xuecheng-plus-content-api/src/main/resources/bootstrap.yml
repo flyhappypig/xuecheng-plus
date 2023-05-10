@@ -38,6 +38,9 @@ spring:
           - data-id: freemarker-${spring.profiles.active}.yaml
             group: xuecheng-plus-common
             refresh: true
+          - data-id: feign-${spring.profiles.active}.yaml
+            group: xuecheng-plus-common
+            refresh: true  #profiles默认为dev
 # 日志文件配置路径
 #logging:
 #  config: classpath:log4j2-dev.xml
@@ -48,20 +51,20 @@ spring:
 #  base-package: com.xuecheng.content
 #  enabled: true
 #  version: 1.0.0
-feign:
-  hystrix:
-    enabled: true
-  circuitbreaker:
-    enabled: true
-hystrix:
-  command:
-    default:
-      execution:
-        isolation:
-          thread:
-            timeoutInMilliseconds: 30000  #熔断超时时间
-ribbon:
-  ConnectTimeout: 60000 #连接超时时间
-  ReadTimeout: 60000 #读超时时间
-  MaxAutoRetries: 0 #重试次数
-  MaxAutoRetriesNextServer: 1 #切换实例的重试次数
+#feign:
+#  hystrix:
+#    enabled: true
+#  circuitbreaker:
+#    enabled: true
+#hystrix:
+#  command:
+#    default:
+#      execution:
+#        isolation:
+#          thread:
+#            timeoutInMilliseconds: 30000  #熔断超时时间
+#ribbon:
+#  ConnectTimeout: 60000 #连接超时时间
+#  ReadTimeout: 60000 #读超时时间
+#  MaxAutoRetries: 0 #重试次数
+#  MaxAutoRetriesNextServer: 1 #切换实例的重试次数
