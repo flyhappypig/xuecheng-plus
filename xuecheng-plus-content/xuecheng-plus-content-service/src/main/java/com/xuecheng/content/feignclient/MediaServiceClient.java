@@ -15,7 +15,8 @@ import java.io.IOException;
  * @author gushouye
  * @description 远程调用媒资服务的接口
  **/
-@FeignClient(contextId = "mediaServiceClient", value = "media-api", configuration = {MultipartSupportConfig.class})
+@FeignClient(contextId = "mediaServiceClient", value = "media-api", configuration = {MultipartSupportConfig.class},
+fallbackFactory = MediaServiceClientFallback.class)
 public interface MediaServiceClient {
 
     @ApiOperation("上传图片")
