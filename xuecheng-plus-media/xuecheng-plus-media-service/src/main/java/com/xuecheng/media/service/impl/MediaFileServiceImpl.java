@@ -96,7 +96,7 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     //    @Transactional
     @Override
-    public UploadFileResultDto uploadFile(Long companyId, String localFilePath, UploadFileParamsDto uploadFileParamsDto) {
+    public UploadFileResultDto uploadFile(Long companyId, String localFilePath, UploadFileParamsDto uploadFileParamsDto, String objectName) {
         File file = new File(localFilePath);
         if (!file.exists()) {
             XueChengPlusException.cast("文件不存在");
@@ -113,7 +113,10 @@ public class MediaFileServiceImpl implements MediaFileService {
         String defaultFolderPath = getDefaultFolderPath();
         // 获取文件的md5值
         String fileMd5 = getFileMd5(file);
-        String objectName = defaultFolderPath + fileMd5 + extension;
+        if (StringUtils.isEmpty(objectName)) {
+            // 使用默认的年月日去存储
+            objectName = defaultFolderPath + fileMd5 + extension;
+        }
         // 上传文件的到minio
         boolean result = getUploadObjectArgs(localFilePath, mimeType, bucket_mediafiles, objectName);
         if (!result) {
@@ -187,10 +190,10 @@ public class MediaFileServiceImpl implements MediaFileService {
         String extension = filename.substring(filename.lastIndexOf("."));
         String mineType = getMineType(extension);
         // 通过mineType判断如果是avi视频，才写入待处理任务
-        if (mineType.equals("video/x-msvideo")){
+        if (mineType.equals("video/x-msvideo")) {
             // 视频
             MediaProcess mediaProcess = new MediaProcess();
-            BeanUtils.copyProperties(mediaFiles,mediaProcess);
+            BeanUtils.copyProperties(mediaFiles, mediaProcess);
             // 状态为未处理
             mediaProcess.setStatus("1");// 未处理
             // 上传时间
