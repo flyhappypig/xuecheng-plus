@@ -1,12 +1,17 @@
 package com.xuecheng.content.service.handler;
 
+import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MessageProcessAbstract;
 import com.xuecheng.messagesdk.service.MqMessageService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
 
 /**
  * @author gushouye
@@ -15,6 +20,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class CoursePublishTask extends MessageProcessAbstract {
+
+    @Autowired
+    private CoursePublishService coursePublishService;
 
     @XxlJob("coursePublishJobHandler")
     public void coursePublishJobHandler() throws Exception {
@@ -37,7 +45,6 @@ public class CoursePublishTask extends MessageProcessAbstract {
         saveCourseIndex(mqMessage, courseId);
         // 向redis写缓存
         saveCourseCache(mqMessage, courseId);
-        int i = 1 / 0;// 模拟异常
 
         // 返回true表示任务处理成功
         return true;
@@ -54,8 +61,15 @@ public class CoursePublishTask extends MessageProcessAbstract {
             log.debug("课程静态化的任务已经执行过了，不再执行");
             return;
         }
-        // 开始生成课程静态化页面
-
+        // 开始生成课程静态化页面，生成html页面
+        File file = coursePublishService.generateCourseHtml(courseId);
+        if (file == null) {
+            // 生成失败
+            log.error("生成课程静态化页面失败");
+            XueChengPlusException.cast("生成课程静态化页面为空");
+        }
+        // 上传html页面到文件系统
+        coursePublishService.uploadCourseHtml(courseId, file);
         // 任务执行成功，更新任务状态
         mqMessageService.completedStageOne(courseId);
     }
