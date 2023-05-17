@@ -26,6 +26,15 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
+    @Autowired
+    private DaoAuthenticationProviderCustom daoAuthenticationProviderCustom;
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        //将自定义的AuthenticationProvider装配到AuthenticationManagerBuilder中
+        auth.authenticationProvider(daoAuthenticationProviderCustom);
+    }
+
     @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
