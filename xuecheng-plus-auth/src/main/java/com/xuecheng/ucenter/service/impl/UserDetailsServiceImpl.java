@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.xuecheng.ucenter.mapper.XcUserMapper;
 import com.xuecheng.ucenter.model.dto.AuthParamsDto;
+import com.xuecheng.ucenter.model.dto.XcUserExt;
 import com.xuecheng.ucenter.model.po.XcUser;
 import com.xuecheng.ucenter.service.AuthService;
 import javafx.application.Application;
@@ -46,23 +47,24 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String authType = authParamsDto.getAuthType();
         // 根据认证类型，调用不同的认证方法
         String beanName = authType + "_authService";
-        applicationContext.getBean(beanName, AuthService.class).execute(authParamsDto);
-        // 账号
-        String username = authParamsDto.getUsername();
-        // 根据用户名查询数据库用户信息
-        XcUser xcUser = xcUserMapper.selectOne(new LambdaQueryWrapper<XcUser>().eq(XcUser::getUsername, username));
-        // 查询到用户不存在，返回null即可，spring security会抛出异常用户不存在
-        if (xcUser == null) {
-            return null;
-        }
-        // 查询到用户存在，拿到正确的密码，最终封装成UserDetails返回给spring security，由框架进行密码比对
-        String password = xcUser.getPassword();
+        XcUserExt xcuser = applicationContext.getBean(beanName, AuthService.class).execute(authParamsDto);
+        // 封装xcUser用户信息为UserDetails
+        UserDetails userPrincipal = getUserPrincipal(xcuser);
+        return userPrincipal;
+    }
+
+    /**
+     * @param user 用户id，主键
+     * @return com.xuecheng.ucenter.model.po.XcUser 用户信息
+     * @description 查询用户信息
+     */
+    public UserDetails getUserPrincipal(XcUserExt user) {
         // 从数据库获取权限
         String[] permissions = {"test"};
-        xcUser.setPassword(null);
+        user.setPassword(null);
         // 用户信息转json
-        String userJson = JSON.toJSONString(xcUser);
-        UserDetails userDetails = User.withUsername(userJson).password(password).authorities(permissions).build();
+        String userJson = JSON.toJSONString(user);
+        UserDetails userDetails = User.withUsername(userJson).password(user.getPassword()).authorities(permissions).build();
         return userDetails;
     }
 }
