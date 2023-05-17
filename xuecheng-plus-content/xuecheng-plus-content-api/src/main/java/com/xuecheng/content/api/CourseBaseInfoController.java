@@ -13,6 +13,7 @@ import com.xuecheng.content.util.SecurityUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,7 @@ public class CourseBaseInfoController {
 
     @ApiOperation("课程查询接口")
     @PostMapping("/course/list")
+    @PreAuthorize("hasAuthority('xc_teachmanager_course_list')") // 指定权限标识符
     public PageResult<CourseBase> list(PageParams pageParams,
                                        @RequestBody(required = false) QueryCourseParamsDto queryCourseParamsDto) {
         return courseBaseInfoService.queryCourseBaseList(pageParams, queryCourseParamsDto);
@@ -40,7 +42,7 @@ public class CourseBaseInfoController {
     @PostMapping("/course")
     public CourseBaseInfoDto createCourseBase(@RequestBody @Validated(value = {ValidationGroups.Insert.class}) AddCourseDto addCourseDto) {
         // 获取用户所属机构ID
-        Long companyId = 1232141425L;
+        Long companyId = Long.valueOf(SecurityUtil.getUser().getCompanyId());
         return courseBaseInfoService.createCourseBase(companyId, addCourseDto);
     }
 
