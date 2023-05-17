@@ -7,6 +7,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +37,9 @@ public class GlobalExceptionHandler {
 
         // 记录异常
         log.error("系统异常{}", e.getMessage(), e);
+        if (e.getMessage().equals("不允许访问")) {
+            return new RestErrorResponse("您没有权限访问该页面");
+        }
         // 解析异常信息
         RestErrorResponse restErrorResponse = new RestErrorResponse(CommonError.UNKOWN_ERROR.getErrMessage());
         return restErrorResponse;

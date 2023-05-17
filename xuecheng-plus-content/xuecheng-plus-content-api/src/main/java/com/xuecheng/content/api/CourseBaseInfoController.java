@@ -32,7 +32,7 @@ public class CourseBaseInfoController {
 
     @ApiOperation("课程查询接口")
     @PostMapping("/course/list")
-    @PreAuthorize("hasAuthority('xc_teachmanager_course_list')") // 指定权限标识符
+    @PreAuthorize("hasAuthority('xc_teachmanager_course_list')") // 指定权限标识符，只有拥有该权限的用户才能访问该接口
     public PageResult<CourseBase> list(PageParams pageParams,
                                        @RequestBody(required = false) QueryCourseParamsDto queryCourseParamsDto) {
         return courseBaseInfoService.queryCourseBaseList(pageParams, queryCourseParamsDto);
