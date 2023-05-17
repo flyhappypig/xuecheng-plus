@@ -13,6 +13,7 @@ import com.xuecheng.ucenter.model.po.XcUserRole;
 import com.xuecheng.ucenter.service.AuthService;
 import com.xuecheng.ucenter.service.WxAuthService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -55,8 +56,13 @@ public class WxAuthServiceImpl implements AuthService, WxAuthService {
     public XcUserExt execute(AuthParamsDto authParamsDto) {
         String username = authParamsDto.getUsername();
         XcUser xcUser = xcUserMapper.selectOne(new LambdaQueryWrapper<XcUser>().eq(XcUser::getUsername, username));
+        if (xcUser == null) {
+            throw new RuntimeException("用户不存在");
+        }
         log.info("微信扫码认证");
-        return null;
+        XcUserExt xcUserExt = new XcUserExt();
+        BeanUtils.copyProperties(xcUser, xcUserExt);
+        return xcUserExt;
     }
 
     @Override

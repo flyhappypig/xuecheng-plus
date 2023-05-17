@@ -22,7 +22,7 @@ public class WxLoginController {
         //请求微信申请令牌，拿到令牌查询用户信息，将用户信息写入本项目数据库
         XcUser xcUser = wxAuthService.wxAuth(code);
         //暂时硬编写，目的是调试环境
-        xcUser.setUsername("t1");
+//        xcUser.setUsername("t1");
         if (xcUser == null) {
             return "redirect:http://www.51xuecheng.cn/error.html";
         }
