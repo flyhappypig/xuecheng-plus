@@ -1,5 +1,6 @@
 package com.xuecheng.ucenter.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.xuecheng.ucenter.mapper.XcUserMapper;
@@ -37,7 +38,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String password = xcUser.getPassword();
         // 从数据库获取权限
         String[] permissions = {"test"};
-        UserDetails userDetails = User.withUsername(username).password(password).authorities(permissions).build();
+        xcUser.setPassword(null);
+        // 用户信息转json
+        String userJson = JSON.toJSONString(xcUser);
+        UserDetails userDetails = User.withUsername(userJson).password(password).authorities(permissions).build();
         return userDetails;
     }
 }
