@@ -32,6 +32,9 @@ public class MyCourseTablesController {
     @ApiOperation("添加选课")
     @PostMapping("/choosecourse/{courseId}")
     public XcChooseCourseDto addChooseCourse(@PathVariable("courseId") Long courseId) {
+        // 获取当前用户
+        String userId = SecurityUtil.getUser().getId();
+        // 添加选课
 
         return null;
     }
