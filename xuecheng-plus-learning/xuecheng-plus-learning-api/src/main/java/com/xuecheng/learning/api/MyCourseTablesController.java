@@ -37,10 +37,11 @@ public class MyCourseTablesController {
     @PostMapping("/choosecourse/{courseId}")
     public XcChooseCourseDto addChooseCourse(@PathVariable("courseId") Long courseId) {
         // 获取当前用户
-        String userId = SecurityUtil.getUser().getId();
-        if (userId == null) {
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        if (user == null) {
             XueChengPlusException.cast("用户请登录");
         }
+        String userId = user.getId();
         // 添加选课
         XcChooseCourseDto xcChooseCourseDto = myCourseTablesService.addChooseCourse(userId, courseId);
         return xcChooseCourseDto;
