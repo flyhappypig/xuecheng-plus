@@ -50,8 +50,14 @@ public class MyCourseTablesController {
     @ApiOperation("查询学习资格")
     @PostMapping("/choosecourse/learnstatus/{courseId}")
     public XcCourseTablesDto getLearnstatus(@PathVariable("courseId") Long courseId) {
-
-        return null;
+        // 获取当前用户
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        if (user == null) {
+            XueChengPlusException.cast("用户请登录");
+        }
+        String userId = user.getId();
+        XcCourseTablesDto learningStatus = myCourseTablesService.getLearningStatus(userId, courseId);
+        return learningStatus;
 
     }
 
