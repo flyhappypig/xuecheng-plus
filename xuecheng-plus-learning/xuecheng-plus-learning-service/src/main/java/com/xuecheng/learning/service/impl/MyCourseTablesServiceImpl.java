@@ -7,6 +7,7 @@ import com.xuecheng.learning.feignclient.ContentServiceClient;
 import com.xuecheng.learning.mapper.XcChooseCourseMapper;
 import com.xuecheng.learning.mapper.XcCourseTablesMapper;
 import com.xuecheng.learning.model.dto.XcChooseCourseDto;
+import com.xuecheng.learning.model.dto.XcCourseTablesDto;
 import com.xuecheng.learning.model.po.XcChooseCourse;
 import com.xuecheng.learning.model.po.XcCourseTables;
 import com.xuecheng.learning.service.MyCourseTablesService;
@@ -35,6 +36,7 @@ public class MyCourseTablesServiceImpl implements MyCourseTablesService {
     public XcChooseCourseDto addChooseCourse(String userId, Long courseId) {
         // 远程调用内容管理服务查询课程的收费规则
         CoursePublish coursepublish = contentServiceClient.getCoursepublish(courseId);
+        XcChooseCourse xcChooseCourse = null;
         if (coursepublish == null) {
             // 课程不存在
             XueChengPlusException.cast("课程不存在");
@@ -43,15 +45,45 @@ public class MyCourseTablesServiceImpl implements MyCourseTablesService {
         String charge = coursepublish.getCharge();
         if (charge.equals("201000")) {
             // 如果是免费课程，会向选课表中添加选课记录，我的课程表中添加课程记录
-            XcChooseCourse xcChooseCourse = addFreeCoruse(userId, coursepublish);// 选课记录表
+            xcChooseCourse = addFreeCoruse(userId, coursepublish);// 选课记录表
             addCourseTabls(xcChooseCourse);// 我的课程表
         } else {
             // 如果是收费课程，会向选课表中添加选课记录
-            XcChooseCourse xcChooseCourse = addChargeCoruse(userId, coursepublish);
+            xcChooseCourse = addChargeCoruse(userId, coursepublish);
         }
         // 判断学生的学习资格
+        XcCourseTablesDto learningStatus = getLearningStatus(userId, courseId);
+        // 返回选课记录
+        XcChooseCourseDto xcChooseCourseDto = new XcChooseCourseDto();
+        BeanUtils.copyProperties(xcChooseCourse, xcChooseCourseDto);
+        xcChooseCourseDto.setLearnStatus(learningStatus.getLearnStatus());
+        return xcChooseCourseDto;
+    }
 
-        return null;
+
+    @Override
+    public XcCourseTablesDto getLearningStatus(String userId, Long courseId) {
+        // 查询我的课程表，如果查不到，说明没有选课
+        XcCourseTables xcCourseTables = getXcCourseTables(userId, courseId);
+        XcCourseTablesDto xcCourseTablesDto = new XcCourseTablesDto();
+        if (xcCourseTables == null) {
+            // 没有选课
+            xcCourseTablesDto.setLearnStatus("702002");
+            return xcCourseTablesDto;
+        }
+        // 如果查到了，判断是否过期，如果过期，也不能继续学习，没有过期，可以继续学习
+        boolean before = xcCourseTables.getValidtimeEnd().isBefore(LocalDateTime.now());
+        if (before) {
+            // 过期
+            xcCourseTablesDto.setLearnStatus("702003");
+            BeanUtils.copyProperties(xcCourseTables, xcCourseTablesDto);
+            return xcCourseTablesDto;
+        } else {
+            // 没有过期
+            xcCourseTablesDto.setLearnStatus("702001");
+            BeanUtils.copyProperties(xcCourseTables, xcCourseTablesDto);
+            return xcCourseTablesDto;
+        }
     }
 
     //添加免费课程,免费课程加入选课记录表、我的课程表
