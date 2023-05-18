@@ -35,7 +35,12 @@ public class CourseBaseInfoController {
     @PreAuthorize("hasAuthority('xc_teachmanager_course_list')") // 指定权限标识符，只有拥有该权限的用户才能访问该接口
     public PageResult<CourseBase> list(PageParams pageParams,
                                        @RequestBody(required = false) QueryCourseParamsDto queryCourseParamsDto) {
-        return courseBaseInfoService.queryCourseBaseList(pageParams, queryCourseParamsDto);
+        String id = SecurityUtil.getUser().getCompanyId();
+        Long companyId = null;
+        if (id != null) {
+            companyId = Long.parseLong(id);
+        }
+        return courseBaseInfoService.queryCourseBaseList(companyId, pageParams, queryCourseParamsDto);
     }
 
     @ApiOperation("新增课程")

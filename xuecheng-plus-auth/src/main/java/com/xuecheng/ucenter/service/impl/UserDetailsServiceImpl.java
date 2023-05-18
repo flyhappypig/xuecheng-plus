@@ -83,6 +83,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             // 转成数组
             authorities = permissions.toArray(new String[0]);
         }
+        // 为了安全，在令牌中不携带用户密码
         user.setPassword(null);
         // 用户信息转json
         String userJson = JSON.toJSONString(user);
