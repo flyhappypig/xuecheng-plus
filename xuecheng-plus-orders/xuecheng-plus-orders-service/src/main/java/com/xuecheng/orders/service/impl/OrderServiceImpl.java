@@ -148,6 +148,7 @@ public class OrderServiceImpl implements OrderService {
      * @param payStatusDto 支付结果信息，是从支付宝查询支付结果返回的
      * @description 保存支付宝支付结果
      */
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveAliPayStatus(PayStatusDto payStatusDto) {
 
@@ -182,7 +183,6 @@ public class OrderServiceImpl implements OrderService {
             // 更新订单表的支付状态为支付成功
             xcOrders.setStatus("600002");
             ordersMapper.updateById(xcOrders);
-            // 发送消息给mq，完成添加选课记录
         }
     }
 
@@ -257,7 +257,7 @@ public class OrderServiceImpl implements OrderService {
         }
         String status = orders.getStatus();
         // 如果此订单支付结果为成功，不再生成支付记录，避免重复支付
-        if ("601002".equals(status)) {
+        if ("600002".equals(status)) {
             XueChengPlusException.cast("订单已支付");
         }
         // 生成支付记录
