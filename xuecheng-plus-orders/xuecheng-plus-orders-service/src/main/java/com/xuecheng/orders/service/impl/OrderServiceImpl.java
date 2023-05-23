@@ -69,6 +69,12 @@ public class OrderServiceImpl implements OrderService {
         return payRecordDto;
     }
 
+    @Override
+    public XcPayRecord getPayRecordByPayno(String payNo) {
+        XcPayRecord payRecord = payRecordMapper.selectOne(new LambdaQueryWrapper<XcPayRecord>().eq(XcPayRecord::getPayNo, payNo));
+        return payRecord;
+    }
+
     /**
      * 保存订单信息
      *
