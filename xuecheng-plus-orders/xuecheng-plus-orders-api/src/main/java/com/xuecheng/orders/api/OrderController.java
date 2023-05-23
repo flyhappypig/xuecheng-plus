@@ -84,4 +84,16 @@ public class OrderController {
         httpResponse.getWriter().write(form);//直接将完整的表单html输出到页面
         httpResponse.getWriter().flush();
     }
+
+    @ApiOperation("查询支付结果")
+    @GetMapping("/payresult")
+    @ResponseBody
+    public PayRecordDto payresult(String payNo) throws IOException {
+        //查询支付结果
+        // 当支付成功后，更新支付记录表的支付状态及订单表的状态为支付成功
+        PayRecordDto payRecordDto = orderService.queryPayResult(payNo);
+
+        return payRecordDto;
+
+    }
 }
