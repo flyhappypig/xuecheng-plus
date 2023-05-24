@@ -11,8 +11,11 @@ import com.xuecheng.learning.model.dto.XcCourseTablesDto;
 import com.xuecheng.learning.model.po.XcChooseCourse;
 import com.xuecheng.learning.model.po.XcCourseTables;
 import com.xuecheng.learning.service.MyCourseTablesService;
+import com.xuecheng.messagesdk.service.MqMessageService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -22,6 +25,8 @@ import java.util.List;
  * @author gushouye
  * @description 选课相关接口实现
  **/
+@Service
+@Slf4j
 public class MyCourseTablesServiceImpl implements MyCourseTablesService {
 
     @Autowired
@@ -30,6 +35,8 @@ public class MyCourseTablesServiceImpl implements MyCourseTablesService {
     private XcCourseTablesMapper courseTablesMapper;
     @Autowired
     private ContentServiceClient contentServiceClient;
+    @Autowired
+    private MqMessageService mqMessageService;
 
     @Override
     @Transactional
@@ -84,6 +91,36 @@ public class MyCourseTablesServiceImpl implements MyCourseTablesService {
             BeanUtils.copyProperties(xcCourseTables, xcCourseTablesDto);
             return xcCourseTablesDto;
         }
+    }
+
+    @Override
+    @Transactional
+    public boolean saveChooseCourseSuccess(String chooseCourseId) {
+        // 根据选课id查询选课记录
+        XcChooseCourse xcChooseCourse = chooseCourseMapper.selectById(chooseCourseId);
+        if (xcChooseCourse == null) {
+            // 选课记录不存在
+            log.error("选课记录不存在,{}", chooseCourseId);
+            return false;
+        }
+        String status = xcChooseCourse.getStatus();
+        // 只有当未支付时才更新为已支付
+        if (status.equals("701002")) {
+            // 更新选课记录为已支付
+            xcChooseCourse.setStatus("701001");
+            int i = chooseCourseMapper.updateById(xcChooseCourse);
+            if (i <= 0) {
+                log.error("更新选课记录失败,{}", xcChooseCourse);
+                return false;
+            }
+            // 向我的课程表中添加课程记录
+            XcCourseTables xcCourseTables = addCourseTabls(xcChooseCourse);
+            if (xcCourseTables == null) {
+                log.error("添加课程记录失败,{}", xcChooseCourse);
+                return false;
+            }
+        }
+        return true;
     }
 
     //添加免费课程,免费课程加入选课记录表、我的课程表
