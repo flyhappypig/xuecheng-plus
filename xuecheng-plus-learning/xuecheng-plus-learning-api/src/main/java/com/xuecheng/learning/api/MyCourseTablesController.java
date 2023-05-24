@@ -64,7 +64,9 @@ public class MyCourseTablesController {
     @ApiOperation("我的课程表")
     @GetMapping("/mycoursetable")
     public PageResult<XcCourseTables> mycoursetable(MyCourseTableParams params) {
-        return null;
+
+        PageResult<XcCourseTables> mycoursetables = myCourseTablesService.mycoursetables(params);
+        return mycoursetables;
     }
 
 }
