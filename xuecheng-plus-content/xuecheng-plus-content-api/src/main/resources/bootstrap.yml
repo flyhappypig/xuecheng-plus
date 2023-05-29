@@ -41,6 +41,17 @@ spring:
           - data-id: feign-${spring.profiles.active}.yaml
             group: xuecheng-plus-common
             refresh: true  #profiles默认为dev
+  redis:
+    host: 192.168.101.65
+    port: 6379
+    password: redis
+    database: 0
+    lettuce:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 0
+    timeout: 10000
 # 日志文件配置路径
 #logging:
 #  config: classpath:log4j2-dev.xml

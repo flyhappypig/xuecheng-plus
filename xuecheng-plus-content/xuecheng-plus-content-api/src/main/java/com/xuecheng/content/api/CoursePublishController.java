@@ -73,7 +73,9 @@ public class CoursePublishController {
         // 封装数据
         CoursePreviewDto coursePreviewDto = new CoursePreviewDto();
         // 查询课程发布信息
-        CoursePublish coursePublish = coursePublishService.getCoursePublish(courseId);
+//        CoursePublish coursePublish = coursePublishService.getCoursePublish(courseId);
+        // 先从缓存中查询，缓存中有直接返回，没有再从数据库中查询
+        CoursePublish coursePublish = coursePublishService.getCoursePublishCache(courseId);
         if (coursePublish == null) {
             return coursePreviewDto;
         }

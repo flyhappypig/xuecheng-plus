@@ -28,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -40,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author gushouye
@@ -64,6 +67,9 @@ public class CoursePublishServiceImpl implements CoursePublishService {
     private MqMessageService mqMessageService;
     @Autowired
     private MediaServiceClient mediaServiceClient;
+    @Autowired
+//    private StringRedisTemplate redisTemplate;
+    private RedisTemplate redisTemplate;
 
     @Override
     public CoursePreviewDto getCoursePreviewInfo(Long courseId) {
@@ -234,6 +240,25 @@ public class CoursePublishServiceImpl implements CoursePublishService {
     public CoursePublish getCoursePublish(Long courseId) {
         CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
         return coursePublish;
+    }
+
+    @Override
+    public CoursePublish getCoursePublishCache(Long courseId) {
+        // 查询缓存
+        Object coursePublishStr = redisTemplate.opsForValue().get("course_publish_" + courseId);
+        if (coursePublishStr != null) {
+            // 缓存中存在
+            CoursePublish coursePublish = JSON.parseObject(coursePublishStr.toString(), CoursePublish.class);
+            return coursePublish;
+        } else {
+            // 从数据库中查询
+            CoursePublish coursePublish = this.getCoursePublish(courseId);
+            if (coursePublish != null) {
+                // 将数据存入缓存
+                redisTemplate.opsForValue().set("course_publish_" + courseId, JSON.toJSONString(coursePublish), 1, TimeUnit.HOURS);
+            }
+            return coursePublish;
+        }
     }
 
     /**
