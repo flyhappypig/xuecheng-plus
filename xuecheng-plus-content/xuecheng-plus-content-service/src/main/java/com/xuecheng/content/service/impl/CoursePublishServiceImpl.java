@@ -244,19 +244,26 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Override
     public CoursePublish getCoursePublishCache(Long courseId) {
+
+        //todo:方案一:解决缓冲穿透---> 查询布隆过滤器,如果返回0,则表示课程id一定不存在
+
+
         // 查询缓存
         Object coursePublishStr = redisTemplate.opsForValue().get("course_publish_" + courseId);
         if (coursePublishStr != null) {
+            if (coursePublishStr.toString().equals("null")) {
+                return null;
+            }
             // 缓存中存在
             CoursePublish coursePublish = JSON.parseObject(coursePublishStr.toString(), CoursePublish.class);
             return coursePublish;
         } else {
             // 从数据库中查询
             CoursePublish coursePublish = this.getCoursePublish(courseId);
-            if (coursePublish != null) {
-                // 将数据存入缓存
-                redisTemplate.opsForValue().set("course_publish_" + courseId, JSON.toJSONString(coursePublish), 1, TimeUnit.HOURS);
-            }
+//            if (coursePublish != null) {
+            // 将数据存入缓存
+            redisTemplate.opsForValue().set("course_publish_" + courseId, JSON.toJSONString(coursePublish), 30, TimeUnit.SECONDS);
+//            }
             return coursePublish;
         }
     }
