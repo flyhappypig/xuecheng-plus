@@ -42,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -246,7 +247,16 @@ public class CoursePublishServiceImpl implements CoursePublishService {
     public CoursePublish getCoursePublishCache(Long courseId) {
 
         //todo:方案一:解决缓冲穿透---> 查询布隆过滤器,如果返回0,则表示课程id一定不存在
-
+        // 解决缓存雪崩---> 1.加锁：synchronized (this) ，
+        //                2.给key设置过期时间,过期时间随机,防止同一时间大量的key过期
+        //                3.缓存预热：定时任务
+        //                4.集群部署，分布式锁
+        //                5.限流
+        //                6.熔断
+        //                7.降级
+        //                8.异步处理
+        // 解决缓存击穿---> 1.加锁：synchronized (this) ，
+        //                2.给key设置过期时间,要么永不过期，要么设置过期时间随机,防止同一时间大量的key过期
 
         // 查询缓存
         Object coursePublishStr = redisTemplate.opsForValue().get("course_publish_" + courseId);
@@ -258,13 +268,26 @@ public class CoursePublishServiceImpl implements CoursePublishService {
             CoursePublish coursePublish = JSON.parseObject(coursePublishStr.toString(), CoursePublish.class);
             return coursePublish;
         } else {
-            // 从数据库中查询
-            CoursePublish coursePublish = this.getCoursePublish(courseId);
+            synchronized (this) {
+                // 再次查询缓存
+                // 查询缓存
+                coursePublishStr = redisTemplate.opsForValue().get("course_publish_" + courseId);
+                if (coursePublishStr != null) {
+                    if (coursePublishStr.toString().equals("null")) {
+                        return null;
+                    }
+                    // 缓存中存在
+                    CoursePublish coursePublish = JSON.parseObject(coursePublishStr.toString(), CoursePublish.class);
+                    return coursePublish;
+                }
+                // 从数据库中查询
+                CoursePublish coursePublish = this.getCoursePublish(courseId);
 //            if (coursePublish != null) {
-            // 将数据存入缓存
-            redisTemplate.opsForValue().set("course_publish_" + courseId, JSON.toJSONString(coursePublish), 30, TimeUnit.SECONDS);
+                // 将数据存入缓存
+                redisTemplate.opsForValue().set("course_publish_" + courseId, JSON.toJSONString(coursePublish), new Random().nextInt(100) + 300, TimeUnit.SECONDS);
 //            }
-            return coursePublish;
+                return coursePublish;
+            }
         }
     }
 
