@@ -282,10 +282,8 @@ public class CoursePublishServiceImpl implements CoursePublishService {
                 }
                 // 从数据库中查询
                 CoursePublish coursePublish = this.getCoursePublish(courseId);
-//            if (coursePublish != null) {
                 // 将数据存入缓存
                 redisTemplate.opsForValue().set("course_publish_" + courseId, JSON.toJSONString(coursePublish), new Random().nextInt(100) + 300, TimeUnit.SECONDS);
-//            }
                 return coursePublish;
             }
         }
