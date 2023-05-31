@@ -21,15 +21,15 @@ import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.content.service.TeachplanService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MqMessageService;
-import com.xuecheng.messagesdk.service.impl.MqMessageServiceImpl;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -71,6 +71,9 @@ public class CoursePublishServiceImpl implements CoursePublishService {
     @Autowired
 //    private StringRedisTemplate redisTemplate;
     private RedisTemplate redisTemplate;
+    @Autowired
+    private RedissonClient redissonClient;
+
 
     @Override
     public CoursePreviewDto getCoursePreviewInfo(Long courseId) {
@@ -295,21 +298,65 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 //    }
 
 
+//    @Override
+//    public CoursePublish getCoursePublishCache(Long courseId) {
+//
+//        //todo:方案一:解决缓冲穿透---> 查询布隆过滤器,如果返回0,则表示课程id一定不存在
+//        // 解决缓存雪崩---> 1.加锁：synchronized (this) ，
+//        //                2.给key设置过期时间,过期时间随机,防止同一时间大量的key过期
+//        //                3.缓存预热：定时任务
+//        //                4.集群部署，分布式锁
+//        //                5.限流
+//        //                6.熔断
+//        //                7.降级
+//        //                8.异步处理
+//        // 解决缓存击穿---> 1.加锁：synchronized (this) ，
+//        //                2.给key设置过期时间,要么永不过期，要么设置过期时间随机,防止同一时间大量的key过期
+//        // 自旋锁
+////        ReentrantLock reentrantLock = new ReentrantLock();
+////        reentrantLock.tryLock();
+////        try {
+////            // 获取锁之后的逻辑
+////            // ...
+////        } finally {
+////            reentrantLock.unlock(); // 释放锁
+////        }
+//        // 查询缓存
+//        Object coursePublishStr = redisTemplate.opsForValue().get("course_publish_" + courseId);
+//        if (coursePublishStr != null) {
+//            if (coursePublishStr.toString().equals("null")) {
+//                return null;
+//            }
+//            // 缓存中存在
+//            CoursePublish coursePublish = JSON.parseObject(coursePublishStr.toString(), CoursePublish.class);
+//            return coursePublish;
+//        } else {
+//            synchronized (this) {
+//                // 再次查询缓存
+//                // 查询缓存
+//                coursePublishStr = redisTemplate.opsForValue().get("course_publish_" + courseId);
+//                if (coursePublishStr != null) {
+//                    if (coursePublishStr.toString().equals("null")) {
+//                        return null;
+//                    }
+//                    // 缓存中存在
+//                    CoursePublish coursePublish = JSON.parseObject(coursePublishStr.toString(), CoursePublish.class);
+//                    return coursePublish;
+//                }
+//                // 从数据库中查询
+//                CoursePublish coursePublish = this.getCoursePublish(courseId);
+//                // 将数据存入缓存
+//                redisTemplate.opsForValue().set("course_publish_" + courseId, JSON.toJSONString(coursePublish), new Random().nextInt(100) + 300, TimeUnit.SECONDS);
+//                return coursePublish;
+//            }
+//        }
+//    }
+
+    /**
+     * 使用redisson实现分布式锁
+     */
     @Override
     public CoursePublish getCoursePublishCache(Long courseId) {
-
-        //todo:方案一:解决缓冲穿透---> 查询布隆过滤器,如果返回0,则表示课程id一定不存在
-        // 解决缓存雪崩---> 1.加锁：synchronized (this) ，
-        //                2.给key设置过期时间,过期时间随机,防止同一时间大量的key过期
-        //                3.缓存预热：定时任务
-        //                4.集群部署，分布式锁
-        //                5.限流
-        //                6.熔断
-        //                7.降级
-        //                8.异步处理
-        // 解决缓存击穿---> 1.加锁：synchronized (this) ，
-        //                2.给key设置过期时间,要么永不过期，要么设置过期时间随机,防止同一时间大量的key过期
-
         // 查询缓存
         Object coursePublishStr = redisTemplate.opsForValue().get("course_publish_" + courseId);
         if (coursePublishStr != null) {
@@ -320,7 +367,10 @@ public class CoursePublishServiceImpl implements CoursePublishService {
             CoursePublish coursePublish = JSON.parseObject(coursePublishStr.toString(), CoursePublish.class);
             return coursePublish;
         } else {
-            synchronized (this) {
+            RLock lock = redissonClient.getLock("courseQueryLocke:" + courseId);
+            // 获取分布式锁
+            lock.lock();
+            try {
                 // 再次查询缓存
                 // 查询缓存
                 coursePublishStr = redisTemplate.opsForValue().get("course_publish_" + courseId);
@@ -332,11 +382,20 @@ public class CoursePublishServiceImpl implements CoursePublishService {
                     CoursePublish coursePublish = JSON.parseObject(coursePublishStr.toString(), CoursePublish.class);
                     return coursePublish;
                 }
+                // 测试redisson锁的续期功能,redisson默认续期时间是30s
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 // 从数据库中查询
                 CoursePublish coursePublish = this.getCoursePublish(courseId);
                 // 将数据存入缓存
                 redisTemplate.opsForValue().set("course_publish_" + courseId, JSON.toJSONString(coursePublish), new Random().nextInt(100) + 300, TimeUnit.SECONDS);
                 return coursePublish;
+            } finally {
+                // 手动去释放锁
+                lock.unlock();
             }
         }
     }

@@ -52,6 +52,10 @@ spring:
         max-idle: 10
         min-idle: 0
     timeout: 10000
+    redisson:
+      #配置文件目录
+      config: classpath:singleServerConfig.yaml
+      #config: classpath:clusterServersConfig.yaml
 # 日志文件配置路径
 #logging:
 #  config: classpath:log4j2-dev.xml
